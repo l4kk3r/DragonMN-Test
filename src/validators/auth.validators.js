@@ -18,7 +18,7 @@ const signinSchema = Joi.object({
 exports.signup = async (ctx, next) => {
     const { value, error } = signupSchema.validate(ctx.request.body, joiOptions)
 
-    if (error) return ctx.status = 422, ctx.body = { message: error.details[0].message }
+    if (error) return ctx.status = 422, ctx.body = { success: false, message: error.details[0].message }
 
     ctx.request.body = value
     await next()
@@ -27,7 +27,7 @@ exports.signup = async (ctx, next) => {
 exports.signin = async (ctx, next) => {
     const { value, error } = signinSchema.validate(ctx.request.body, joiOptions)
 
-    if (error) return ctx.status = 422, ctx.body = { message: error.details[0].message }
+    if (error) return ctx.status = 422, ctx.body = { success: false, message: error.details[0].message }
 
     ctx.request.body = value
     await next()

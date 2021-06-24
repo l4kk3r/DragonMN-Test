@@ -21,7 +21,7 @@ const endTicketSchema = Joi.object({
 exports.buyTickets = async (ctx, next) => {
     const { value, error } = buyTicketsSchema.validate(ctx.request.body, joiOptions)
 
-    if (error) return ctx.status = 422, ctx.body = { message: error.details[0].message }
+    if (error) return ctx.status = 422, ctx.body = { success: false, message: error.details[0].message }
 
     ctx.request.body = value
     await next()
@@ -30,7 +30,7 @@ exports.buyTickets = async (ctx, next) => {
 exports.openCell = async (ctx, next) => {
     const { value, error } = openCellSchema.validate(ctx.request.body, joiOptions)
 
-    if (error) return ctx.status = 422, ctx.body = { message: error.details[0].message }
+    if (error) return ctx.status = 422, ctx.body = { success: false, message: error.details[0].message }
 
     ctx.request.body = value
     await next()
@@ -39,7 +39,7 @@ exports.openCell = async (ctx, next) => {
 exports.endTicket = async (ctx, next) => {
     const { value, error } = endTicketSchema.validate(ctx.request.body, joiOptions)
 
-    if (error) return ctx.status = 422, ctx.body = { message: error.details[0].message }
+    if (error) return ctx.status = 422, ctx.body = { success: false, message: error.details[0].message }
 
     ctx.request.body = value
     await next()

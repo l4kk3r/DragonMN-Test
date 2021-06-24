@@ -11,17 +11,18 @@ exports.buyTickets = async ctx => {
     
         const ticketWorh = count * TICKET_PRICE
     
-        if (ticketWorh > user.balance) return ctx.status = 400, ctx.body = { message: 'Не хватает средств на приобретение билетов' }
+        if (ticketWorh > user.balance) return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Не хватает средств на приобретение билетов' }
     
         await createTickets(count, user._id)
     
         await User.findByIdAndUpdate(user._id, { $inc: { balance: -ticketWorh } })
-    
-        ctx.body = { message: 'Билеты успешно созданы' }
+        
+        const response = { message: 'Билеты успешно созданы' }
+        ctx.body = { success: true, response }
     } catch (e) {
         console.log(e)
         ctx.status = 500
-        ctx.body = { message: 'Iternal Server Error' }
+        ctx.body = { success: false, status: 500, message: 'Iternal Server Error' }
     }
 }
 
@@ -32,20 +33,21 @@ exports.openCell = async ctx => {
     
         const ticket = await Ticket.findById(_id)
     
-        if (!ticket || !ticket.owner.equals(user._id)) return ctx.status = 403, ctx.body = { message: 'У вас нет доступа к данному билету' }
+        if (!ticket || !ticket.owner.equals(user._id)) return ctx.status = 403, ctx.body = { success: false, status: 403, message: 'У вас нет доступа к данному билету' }
     
-        if (ticket.status === 'ended') return ctx.status = 400, ctx.body = { message: 'Данный билет уже завершён' }
+        if (ticket.status === 'ended') return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Данный билет уже завершён' }
     
-        if (ticket.cells[cell].status === 'opened') return ctx.status = 400, ctx.body = { message: 'Данная клетка уже открыта' }
+        if (ticket.cells[cell].status === 'opened') return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Данная клетка уже открыта' }
     
         if (ticket.status === 'new') await Ticket.findByIdAndUpdate(_id, { status: 'active', [`cells.${cell}.status`]: 'opened' })
         if (ticket.status === 'active') await Ticket.findByIdAndUpdate(_id, { [`cells.${cell}.status`]: 'opened' })
     
-        ctx.body = { message: 'Клетка открыта' }
+        const response = { message: 'Клетка открыта' }
+        ctx.body = { success: true, response }
     } catch (e) {
         console.log(e)
         ctx.status = 500
-        ctx.body = { message: 'Iternal Server Error' }
+        ctx.body = { success: false, status: 500, message: 'Iternal Server Error' }
     }
 }
 
@@ -56,12 +58,13 @@ exports.getState = async ctx => {
         const tickets = await Ticket.find({ owner: user._id, status: {$in: ['new', 'active'] }}).sort({ updatedAt: -1 })
     
         const currentTicket = tickets.length > 0 ? tickets[0] : null
-    
-        ctx.body = { activeTicketsNumber: tickets.length, currentTicket }
+
+        const response = { activeTicketsNumber: tickets.length, currentTicket }
+        ctx.body = { success: true, response }
     } catch (e) {
         console.log(e)
         ctx.status = 500
-        ctx.body = { message: 'Iternal Server Error' }
+        ctx.body = { success: false, status: 500, message: 'Iternal Server Error' }
     }
 }
 
@@ -72,21 +75,22 @@ exports.endTicket = async ctx => {
 
         const ticket = await Ticket.findById(_id)
     
-        if (!ticket || !ticket.owner.equals(user._id)) return ctx.status = 403, ctx.body = { message: 'У вас нет доступа к данному билету' }
+        if (!ticket || !ticket.owner.equals(user._id)) return ctx.status = 403, ctx.body = { success: false, status: 403, message: 'У вас нет доступа к данному билету' }
     
-        if (ticket.status === 'ended') return ctx.status = 400, ctx.body = { message: 'Данный билет уже завершён' }
+        if (ticket.status === 'ended') return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Данный билет уже завершён' }
     
         const hasClosedCell = ticket.cells.some(cell => cell.status === 'closed')
     
-        if (hasClosedCell) return ctx.status = 400, ctx.body = { message: 'Не все клетки стёрты' }
+        if (hasClosedCell) return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Не все клетки стёрты' }
     
         await Ticket.findByIdAndUpdate(_id, { status: 'ended' })
         await User.findByIdAndUpdate(user._id, { $inc: { balance: ticket.prize } })
-    
-        ctx.body = { message: `Билет успешно закрыт. Выигрыш (${ticket.prize} монет) зачислен пользователю` }
+
+        const response = { message: `Билет успешно закрыт. Выигрыш (${ticket.prize} монет) зачислен пользователю` }
+        ctx.body = { success: true, response }
     } catch (e) {
         console.log(e)
         ctx.status = 500
-        ctx.body = { message: 'Iternal Server Error' }
+        ctx.body = { success: false, status: 500, message: 'Iternal Server Error' }
     }
 }
