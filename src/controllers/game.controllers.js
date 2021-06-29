@@ -13,9 +13,10 @@ exports.buyTickets = async ctx => {
     
         if (ticketWorh > user.balance) return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Не хватает средств на приобретение билетов' }
     
-        await createTickets(count, user._id)
-    
-        await User.findByIdAndUpdate(user._id, { $inc: { balance: -ticketWorh } })
+        await Promise.all([
+            createTickets(count, user._id),
+            User.findByIdAndUpdate(user._id, { $inc: { balance: -ticketWorh } })
+        ])
         
         const response = { message: 'Билеты успешно созданы' }
         ctx.body = { success: true, response }
@@ -83,8 +84,10 @@ exports.endTicket = async ctx => {
     
         if (hasClosedCell) return ctx.status = 400, ctx.body = { success: false, status: 400, message: 'Не все клетки стёрты' }
     
-        await Ticket.findByIdAndUpdate(_id, { status: 'ended' })
-        await User.findByIdAndUpdate(user._id, { $inc: { balance: ticket.prize } })
+        await Promise.all([
+            Ticket.findByIdAndUpdate(_id, { status: 'ended' }),
+            User.findByIdAndUpdate(user._id, { $inc: { balance: ticket.prize } })
+        ])
 
         const response = { message: `Билет успешно закрыт. Выигрыш (${ticket.prize} монет) зачислен пользователю` }
         ctx.body = { success: true, response }
